@@ -4,6 +4,19 @@ FROM python:3.10-slim
 # Set the working directory
 WORKDIR /app
 
+# Install necessary system packages
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    libssl-dev \
+    libffi-dev \
+    python3-dev \
+    wget \
+    libhdf5-dev \
+    libblas-dev \
+    liblapack-dev \
+    gfortran \
+    && apt-get clean
+
 # Upgrade pip
 RUN pip install --upgrade pip setuptools
 
