@@ -5,13 +5,13 @@ FROM python:3.8-slim
 WORKDIR /app
 
 # Copy the requirements file into the container
-COPY requirements.txt .
+COPY python-backend/requirements.txt .
 
 # Install the required Python packages
 RUN pip install -r requirements.txt
 
 # Copy the rest of the application code into the container
-COPY . .
+COPY python-backend/ .
 
 # Expose the port that your Flask app listens on
 EXPOSE 5000
