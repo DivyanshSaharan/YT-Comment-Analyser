@@ -1,4 +1,4 @@
-# Use the official Python image with Python 3.10
+# Use the official Python image as the base image
 FROM python:3.10-slim
 
 # Set the working directory
@@ -8,13 +8,13 @@ WORKDIR /app
 RUN pip install --upgrade pip setuptools
 
 # Copy the requirements file into the container
-COPY requirements.txt .
+COPY python-backend/requirements.txt .
 
 # Install the required Python packages
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code into the container
-COPY . .
+COPY python-backend/ .
 
 # Expose the port that your Flask app listens on
 EXPOSE 5000
