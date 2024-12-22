@@ -1,17 +1,17 @@
-# Use the official Python image with Python 3.9
-FROM python:3.9-slim
+# Use the official Python image with Python 3.10
+FROM python:3.10-slim
 
 # Set the working directory
 WORKDIR /app
 
 # Upgrade pip
-RUN pip install --upgrade pip
+RUN pip install --upgrade pip setuptools
 
 # Copy the requirements file into the container
 COPY requirements.txt .
 
 # Install the required Python packages
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code into the container
 COPY . .
