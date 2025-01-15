@@ -2,6 +2,7 @@ services:
   - type: web
     name: yt-comment-analyzer-backend
     env: python
+    pythonVersion: 3.9
     buildCommand: "pip install -r requirements.txt"
     startCommand: "python app.py"
     plan: free
