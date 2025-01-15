@@ -15,6 +15,8 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.layers import Layer
 from tensorflow.keras.models import Model
 from tensorflow.keras import backend as K
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 
 # In[9]:
