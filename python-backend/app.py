@@ -1,10 +1,12 @@
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 import pandas as pd
 import re
-import os
 from dotenv import load_dotenv
 from comment_analyzer import analyze_comments
 
