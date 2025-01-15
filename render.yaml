@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: yt-comment-analyzer-backend
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python app.py"
+    plan: free
+
+  - type: web
+    name: yt-comment-analyzer-frontend
+    env: node
+    buildCommand: npm run dev
+    publishDir: dev
+    plan: free
