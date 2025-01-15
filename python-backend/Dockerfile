@@ -29,8 +29,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application code into the container
 COPY python-backend/ .
 
+# Copy the start script into the container
+COPY python-backend/start.sh .
+
+# Make the start script executable
+RUN chmod +x start.sh
+
 # Expose the port that your Flask app listens on
 EXPOSE 5000
 
-# Start the Flask app
-CMD ["python", "app.py"]
+# Start the Flask app using the start script
+CMD ["./start.sh"]
