@@ -68,8 +68,6 @@ def get_comments(video_id, part="snippet", max_results=1000):
             maxResults=max_results
         ).execute()
 
-        # print(response)
-
         comments = []
         for item in response["items"]:
             comment_text = item["snippet"]["topLevelComment"]["snippet"]["textDisplay"]
@@ -83,7 +81,6 @@ def get_comments(video_id, part="snippet", max_results=1000):
         return None
 
 @app.route('/analyze', methods=['POST'])
-
 def analyze():
     # Get the YouTube link from the request
     data = request.get_json()
@@ -91,7 +88,6 @@ def analyze():
 
     # Extract the video ID from the YouTube link
     video_id = extract_video_id(youtube_link)
-    # video_id=youtube_link
 
     if video_id:
         video_details = get_video_details(video_id)
@@ -102,17 +98,11 @@ def analyze():
             df = pd.DataFrame(comments)
             df = df.sort_values(by=['num_of_likes'], ascending=False)
 
-             # Analyze the comments for sentiment
+            # Analyze the comments for sentiment
             analyzed_comments = analyze_comments(comments)
-
-            # print(analyzed_comments)
 
             # Return all comments with sentiment analysis as a JSON response
             return jsonify({"video_details": video_details,"analyzed_comments": analyzed_comments})
-
-            # all_comments=df.to_dict(orient="records")
-            # return jsonify({"all_comments": all_comments})
-
 
         return jsonify({"error": "Error: Could not retrieve comments from video."}), 500
     else:
