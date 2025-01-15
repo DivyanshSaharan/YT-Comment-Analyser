@@ -53,9 +53,8 @@ class AttentionLayer(Layer):
 
 from tensorflow.keras.models import load_model
 
-# Load the senti ment analysis model, specifying the custom layer
+# Load the sentiment analysis model, specifying the custom layer
 model_sentiment = load_model('model_1.h5', custom_objects={'AttentionLayer': AttentionLayer})
-# model_sentiment = load_model('final_model.h5', custom_objects={'AttentionLayer': AttentionLayer})
 model_sentiment.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
 
