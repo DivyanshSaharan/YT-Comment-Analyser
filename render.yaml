@@ -6,6 +6,9 @@ services:
     buildCommand: "pip install -r requirements.txt"
     startCommand: "python app.py"
     plan: free
+    envVars:
+      - key: CUDA_VISIBLE_DEVICES
+        value: "-1"
 
   - type: web
     name: yt-comment-analyzer-frontend
