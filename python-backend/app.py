@@ -23,7 +23,14 @@ CORS(app)
 spark = SparkSession.builder \
     .appName("YouTubeCommentAnalysis") \
     .master("local[*]") \
+    .config("spark.executor.memory", "8g") \
+    .config("spark.driver.memory", "8g") \
+    .config("spark.executor.cores", "4") \
+    .config("spark.network.timeout", "600s") \
+    .config("spark.hadoop.security.authentication", "simple") \
+    .config("spark.ui.showConsoleProgress", "false") \
     .getOrCreate()
+
 
 def extract_video_id(youtube_url):
     video_id_match = re.match(r'.*v=([^&]*)', youtube_url)
@@ -105,7 +112,7 @@ def analyze():
             df = df.sort_values(by=['num_of_likes'], ascending=False)
 
             # Sentiment analysis using Spark
-            analyzed_comments = analyze_comments(comments, spark)
+            analyzed_comments = analyze_comments(comments)
 
             return jsonify({
                 "video_details": video_details,
