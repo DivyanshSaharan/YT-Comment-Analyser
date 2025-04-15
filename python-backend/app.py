@@ -1,18 +1,17 @@
 import os
-import re
-import pandas as pd
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+import pandas as pd
+import re
 from dotenv import load_dotenv
-import nltk
+from pyspark.sql import SparkSession
+from comment_analyzer import analyze_comments
 
-# Download VADER lexicon
-nltk.download('vader_lexicon')
-
-# Load environment variables
+# Load env variables
 load_dotenv()
 DEVELOPER_KEY = os.getenv('DEVELOPER_KEY')
 
@@ -20,8 +19,18 @@ DEVELOPER_KEY = os.getenv('DEVELOPER_KEY')
 app = Flask(__name__)
 CORS(app)
 
-# VADER Sentiment Analyzer
-analyzer = SentimentIntensityAnalyzer()
+# Initialize Spark session
+spark = SparkSession.builder \
+    .appName("YouTubeCommentAnalysis") \
+    .master("local[*]") \
+    .config("spark.executor.memory", "8g") \
+    .config("spark.driver.memory", "8g") \
+    .config("spark.executor.cores", "4") \
+    .config("spark.network.timeout", "600s") \
+    .config("spark.hadoop.security.authentication", "simple") \
+    .config("spark.ui.showConsoleProgress", "false") \
+    .getOrCreate()
+
 
 def extract_video_id(youtube_url):
     video_id_match = re.match(r'.*v=([^&]*)', youtube_url)
@@ -88,26 +97,6 @@ def get_comments(video_id, part="snippet", max_results=100):
         print(f"An HTTP error {error.status_code} occurred:\n{error.content}")
         return None
 
-def analyze_comments(comments):
-    results = []
-    for comment in comments:
-        text = comment["comment"]
-        scores = analyzer.polarity_scores(text)
-        sentiment = (
-            'positive' if scores['compound'] >= 0.05 else
-            'negative' if scores['compound'] <= -0.05 else
-            'neutral'
-        )
-        rating = scores['compound']  # use compound as rating
-        results.append({
-            "comment": str(comment["comment"]),
-            "num_of_likes": float(comment["num_of_likes"]),
-            "timestamp": str(comment["timestamp"]),
-            "sentiment": sentiment,
-            "rating": float(rating)
-        })
-    return results
-
 @app.route('/analyze', methods=['POST'])
 def analyze():
     data = request.get_json()
@@ -122,7 +111,8 @@ def analyze():
             df = pd.DataFrame(comments)
             df = df.sort_values(by=['num_of_likes'], ascending=False)
 
-            analyzed_comments = analyze_comments(df.to_dict(orient='records'))
+            # Sentiment analysis using Spark
+            analyzed_comments = analyze_comments(comments)
 
             return jsonify({
                 "video_details": video_details,
