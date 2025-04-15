@@ -1,59 +1,86 @@
-# VibeCheck: YouTube Comment Analyzer  
+# VibeCheck: YouTube Comment Analyzer
 
-*"Unlocking the true sentiment behind YouTube comments to empower creators with actionable insights for better content and viewer engagement."*
+![Banner](frontend/src/assets/banner.jpg)
+
+*“Unlocking the true sentiment behind YouTube comments to empower creators with actionable insights for better content and viewer engagement.”*
 
 ---
 
-## Table of Contents  
+## 🌐 [Live Deployment](https://yt-comment-analyser-frontend.onrender.com/)  
+
+
+
+## 📚 Table of Contents
 
 1. [Introduction](#introduction)  
 2. [Features](#features)  
 3. [Technologies Used](#technologies-used)  
 4. [Setup and Installation](#setup-and-installation)  
+5. [Usage](#usage)
 
 ---
 
-## Introduction  
+## 🧠 Introduction
 
-VibeCheck is a sentiment analysis tool designed to classify YouTube comments into positive, neutral, or negative categories. It uses this classification to generate a weighted average rating for YouTube videos, helping creators and viewers gauge public sentiment at a glance.  
-
----
-
-## Features  
-
-- Fetch video details like title, channel name, views, and likes using YouTube API.  
-- Analyze video comments for sentiment (positive, neutral, negative).  
-- Calculate a sentiment-based weighted rating for videos.  
-- Provide actionable insights for content improvement.  
+**VibeCheck** is a sentiment analysis platform that classifies YouTube video comments into positive, neutral, or negative sentiments. Based on these sentiments, it generates a weighted average rating, helping creators better understand viewer feedback and engagement.
 
 ---
 
-## Technologies Used  
+## 🚀 Features
 
-- *Backend*: Flask  
-- *Frontend*: ReactJs  
-- *Machine Learning*: TensorFlow (Bi-directional GRU with Attention Layer)    
-- *APIs*: Google YouTube API  
+- Fetches video metadata like title, channel name, views, and likes using the YouTube API.
+- Analyzes up to 1000 comments per video using ML-powered sentiment analysis.
+- Calculates a sentiment-based weighted rating.
+- Offers insights to improve content and boost viewer satisfaction.
 
 ---
 
-## Setup and Installation  
+## 🛠️ Technologies Used
 
-1. *Clone the repository:*  
+- **Frontend**: React.js  
+- **Backend**: Flask (Python)  
+- **ML Model**: TensorFlow (Bi-directional GRU with Attention Layer)  
+- **API**: YouTube Data API v3  
+- **Containerization**: Docker, Docker Compose  
 
-2. *Install dependencies:*
-    ```bash
-    pip3 install -r requirements.txt
-  
-3. Set up API credentials:
-Obtain an API key from the Google Developers Console.  
+---
 
-4. Run the application:
-*Backend*:
+## 🧰 Setup and Installation
 
-    python3 app.py
+### Prerequisites
 
-*Frontend*:
+- Docker & Docker Compose installed on your system  
+- A YouTube Data API key from [Google Developer Console](https://console.developers.google.com)
 
-    npm run dev
+### Steps
 
+1. **Clone the repository:**
+
+   ```bash
+   git clone https://github.com/yourusername/vibecheck.git
+   cd vibecheck
+   ```
+
+2. **Create a .env file in the python-backend/ directory and add your API key:**
+
+   ```bash
+   DEVELOPER_KEY=your_youtube_api_key
+   ```
+
+3. **Build and run the project using Docker Compose:**
+
+   ```bash
+   docker-compose up --build
+   ```
+
+4. **Visit the app in your browser:**
+
+   ```bash
+   http://localhost:3000
+   ```
+
+## 🧪 Usage
+- Enter a valid **YouTube video URL** in the input field.
+- Click the **Analyze** button. 
+- Wait for the system to fetch comments and generate sentiment insights.
+- View the **sentiment distribution, overall score, and suggestions.**
