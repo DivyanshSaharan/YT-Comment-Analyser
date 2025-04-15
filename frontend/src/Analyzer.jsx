@@ -10,24 +10,21 @@ const Analyzer = () => {
     const [overallScore, setOverallScore] = useState(0.0);
 
     const handleAnalyzeClick = () => {
-        console.log('YouTube Link:', youtubeLink);
+    console.log('YouTube Link:', youtubeLink);
 
-        axios.post('http://127.0.0.1:5000/analyze', { youtubeLink: youtubeLink })
-            .then(response => {
-                console.log(response)
-                setTimeout(() => {
-                    console.log(result)
-                    calOverAllScore(result);
-                }, 4000);
-                
-                setResult(response.data);
-                console.log(result)
-                calOverAllScore(result);
-            })
-            .catch(error => {
-                console.error("Error analyzing the YouTube link: ", error);
-            });
-    };
+    axios.post('http://127.0.0.1:5000/analyze', { youtubeLink: youtubeLink })
+        .then(response => {
+            console.log(response.data);
+            setResult(response.data);
+
+            // Call the score calculation function using response.data directly
+            calOverAllScore(response.data);
+        })
+        .catch(error => {
+            console.error("Error analyzing the YouTube link: ", error);
+        });
+};
+
 
     const calOverAllScore = (result) => {
         console.log("Calculating Overall Score...");
