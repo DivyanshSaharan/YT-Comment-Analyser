@@ -57,7 +57,7 @@
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/yourusername/vibecheck.git
+   git clone https://github.com/DivyanshSaharan/YT-Comment-Analyser.git
    cd vibecheck
    ```
 
