@@ -1,0 +1,20 @@
+version: '3.9'
+
+services:
+  backend:
+    build:
+      context: ./python-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+    depends_on:
+      - frontend
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "3000:3000"
+    stdin_open: true
+    tty: true

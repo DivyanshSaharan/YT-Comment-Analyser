@@ -1,6 +1,6 @@
 import React from "react";
 import { Box, Typography, Grid } from "@mui/material";
-
+import logo from './assets/banner.jpg';
 const Banner = () => {
   return (
     <Box
@@ -33,7 +33,7 @@ const Banner = () => {
         </Grid>
         <Grid item xs={12} md={6} textAlign="right" >
           <img
-            src="../banner.jpg"
+            src={logo}
             alt="VibeCheck Banner"
             style={{ maxWidth: "90%", height: "auto", borderRadius: "8px"}}
           />
