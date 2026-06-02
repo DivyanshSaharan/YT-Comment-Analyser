@@ -47,25 +47,42 @@ class AttentionLayer(Layer):
         return K.sum(inputs * ait, axis=1)
 
 
-model_sentiment = load_model(
-    SENTIMENT_MODEL_PATH,
-    custom_objects={"AttentionLayer": AttentionLayer},
-)
-model_sentiment.compile(
-    optimizer="adam",
-    loss="sparse_categorical_crossentropy",
-    metrics=["accuracy"],
-)
+# Define global variables but do not load them yet
+model_sentiment = None
+model_sarcasm = None
+tokenizer = None
 
-model_sarcasm = load_model(SARCASM_MODEL_PATH)
-model_sarcasm.compile(
-    optimizer=Adam(learning_rate=0.001),
-    loss="binary_crossentropy",
-    metrics=["accuracy"],
-)
 
-with TOKENIZER_PATH.open("rb") as file:
-    tokenizer = pickle.load(file)
+def initialize_models():
+    """Loads models and tokenizer into memory only when called."""
+    global model_sentiment, model_sarcasm, tokenizer
+
+    # Only load if they haven't been loaded already
+    if model_sentiment is None:
+        print("Loading Sentiment Model...")
+        model_sentiment = load_model(
+            SENTIMENT_MODEL_PATH,
+            custom_objects={"AttentionLayer": AttentionLayer},
+        )
+        model_sentiment.compile(
+            optimizer="adam",
+            loss="sparse_categorical_crossentropy",
+            metrics=["accuracy"],
+        )
+
+    if model_sarcasm is None:
+        print("Loading Sarcasm Model...")
+        model_sarcasm = load_model(SARCASM_MODEL_PATH)
+        model_sarcasm.compile(
+            optimizer=Adam(learning_rate=0.001),
+            loss="binary_crossentropy",
+            metrics=["accuracy"],
+        )
+
+    if tokenizer is None:
+        print("Loading Tokenizer...")
+        with TOKENIZER_PATH.open("rb") as file:
+            tokenizer = pickle.load(file)
 
 
 def remove_links(text):
@@ -78,6 +95,8 @@ def remove_non_alpha(text):
 
 
 def preprocess_sentence(sentence):
+    # Ensure tokenizer is loaded before using it
+    initialize_models()
     sentence = remove_links(sentence)
     sentence = remove_non_alpha(sentence)
     sequence = tokenizer.texts_to_sequences([sentence])
@@ -85,6 +104,8 @@ def preprocess_sentence(sentence):
 
 
 def predict_sentiment(sentence):
+    # Ensure models are loaded before using them
+    initialize_models()
     processed_sentence = preprocess_sentence(sentence)
     prediction = model_sentiment.predict(processed_sentence, verbose=0)
     predicted_class = int(np.argmax(prediction, axis=-1)[0])
@@ -100,6 +121,8 @@ def predict_sentiment(sentence):
 
 
 def predict_sarcasm(sentences):
+    # Ensure models are loaded before using them
+    initialize_models()
     cleaned_sentences = [remove_non_alpha(remove_links(sentence)) for sentence in sentences]
     sequences = tokenizer.texts_to_sequences(cleaned_sentences)
     padded = pad_sequences(sequences, maxlen=32, padding="post", truncating="post")

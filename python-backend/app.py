@@ -94,6 +94,9 @@ def get_comments(video_id, part="snippet", max_results=100):
         app.logger.exception("YouTube comments request failed: %s", error)
         return None
 
+@app.route('/', methods=['GET'])
+def health_check():
+    return "Backend is awake!", 200
 
 @app.route("/analyze", methods=["POST"])
 def analyze():
@@ -139,9 +142,6 @@ def analyze():
 
     return jsonify({"error": "Invalid YouTube link provided."}), 400
 
-@app.route('/', methods=['GET'])
-def health_check():
-    return "Backend is awake!", 200
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
