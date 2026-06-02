@@ -1,48 +1,36 @@
-import * as React from 'react';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
-import CssBaseline from '@mui/material/CssBaseline';
-import IconButton from '@mui/material/IconButton';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-
-const navItems = ['Home', 'About', 'Contact'];
 
 const Navbar = () => {
   return (
-    <div style={{marginBottom:'64px'}}>
-
-    <Box sx={{ display: 'flex' }}>
-      <CssBaseline />
-      <AppBar component="nav">
-        <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            sx={{ mr: 2, display: { sm: 'none' } }}
-            >
-          </IconButton>
+    <Box sx={{ height: 72 }}>
+      <AppBar
+        component="nav"
+        elevation={0}
+        sx={{
+          backgroundColor: 'rgba(255, 255, 255, 0.88)',
+          backdropFilter: 'blur(14px)',
+          borderBottom: '1px solid rgba(23, 32, 28, 0.08)',
+          color: '#17201c',
+        }}
+      >
+        <Toolbar sx={{ minHeight: 72, px: { xs: 2, md: 5 } }}>
           <Typography
-            variant="h6"
+            variant="h5"
             component="div"
-            sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }}
-            >
+            sx={{ flexGrow: 1, fontWeight: 800, letterSpacing: 0 }}
+          >
             VibeCheck
           </Typography>
-          <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-            {navItems.map((item) => (
-              <Button key={item} sx={{ color: '#fff' }}>
-                {item}
-              </Button>
-            ))}
-          </Box>
+          <Typography variant="body2" sx={{ color: '#5b6b63', fontWeight: 600 }}>
+            YouTube sentiment intelligence
+          </Typography>
         </Toolbar>
       </AppBar>
     </Box>
-    </div>
-  )
-}
+  );
+};
 
-export default Navbar
+export default Navbar;

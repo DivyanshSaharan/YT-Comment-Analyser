@@ -1,86 +1,117 @@
-# VibeCheck: YouTube Comment Analyzer
+# VibeCheck: YouTube Comment Sentiment Analyzer
 
-![Banner](frontend/src/assets/banner.jpg)
+VibeCheck is a full-stack ML application that analyzes YouTube comments with local TensorFlow models. It fetches video metadata and comments through the YouTube Data API, classifies each comment as positive, neutral, or negative, adjusts for sarcasm, and presents the results in a polished React dashboard.
 
-*“Unlocking the true sentiment behind YouTube comments to empower creators with actionable insights for better content and viewer engagement.”*
+![VibeCheck banner](frontend/src/assets/banner.jpg)
 
----
+## Highlights
 
-## 🌐 [Live Deployment](https://yt-comment-analyser-frontend.onrender.com/)  
+- React and Material UI dashboard with loading, validation, error, metric, chart, and comment-review states.
+- Flask API that fetches YouTube video metadata and top-level comments.
+- Local TensorFlow sentiment model with a custom attention layer: `python-backend/model_1.h5`.
+- Local TensorFlow sarcasm model: `python-backend/new_model_sarcasm.h5`.
+- Local tokenizer artifact: `python-backend/tokenizer.pkl`.
+- Weighted 0-10 video sentiment score based on model rating, recency, and engagement.
+- Docker and Docker Compose support for local deployment.
 
+## Tech Stack
 
+- Frontend: React, Vite, Material UI, Recharts, Axios
+- Backend: Flask, Flask-CORS, YouTube Data API v3
+- Machine learning: TensorFlow/Keras, GRU attention sentiment model, sarcasm classifier
+- Deployment: Docker, Docker Compose
 
-## 📚 Table of Contents
+## Project Structure
 
-1. [Introduction](#introduction)  
-2. [Features](#features)  
-3. [Technologies Used](#technologies-used)  
-4. [Setup and Installation](#setup-and-installation)  
-5. [Usage](#usage)
+```text
+yt-comment-analyzer/
+  frontend/          React dashboard
+  python-backend/    Flask API and local ML model artifacts
+  docker-compose.yml
+```
 
----
+## Setup
 
-## 🧠 Introduction
+Create `python-backend/.env`:
 
-**VibeCheck** is a sentiment analysis platform that classifies YouTube video comments into positive, neutral, or negative sentiments. Based on these sentiments, it generates a weighted average rating, helping creators better understand viewer feedback and engagement.
+```bash
+DEVELOPER_KEY=your_youtube_data_api_key
+```
 
----
+Install and run the backend:
 
-## 🚀 Features
+```bash
+cd python-backend
+pip install -r requirements.txt
+python app.py
+```
 
-- Fetches video metadata like title, channel name, views, and likes using the YouTube API.
-- Analyzes up to 1000 comments per video using ML-powered sentiment analysis.
-- Calculates a sentiment-based weighted rating.
-- Offers insights to improve content and boost viewer satisfaction.
+Install and run the frontend:
 
----
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-## 🛠️ Technologies Used
+Open the frontend URL printed by Vite, usually `http://localhost:5173`.
 
-- **Frontend**: React.js  
-- **Backend**: Flask (Python)  
-- **ML Model**: TensorFlow (Bi-directional GRU with Attention Layer)  
-- **API**: YouTube Data API v3  
-- **Containerization**: Docker, Docker Compose  
+## Docker
 
----
+```bash
+docker-compose up --build
+```
 
-## 🧰 Setup and Installation
+## Environment Variables
 
-### Prerequisites
+Frontend:
 
-- Docker & Docker Compose installed on your system  
-- A YouTube Data API key from [Google Developer Console](https://console.developers.google.com)
+```bash
+VITE_API_BASE_URL=http://127.0.0.1:5000
+```
 
-### Steps
+Backend:
 
-1. **Clone the repository:**
+```bash
+DEVELOPER_KEY=your_youtube_data_api_key
+PORT=5000
+```
 
-   ```bash
-   git clone https://github.com/DivyanshSaharan/YT-Comment-Analyser.git
-   cd vibecheck
-   ```
+## API
 
-2. **Create a .env file in the python-backend/ directory and add your API key:**
+`POST /analyze`
 
-   ```bash
-   DEVELOPER_KEY=your_youtube_api_key
-   ```
+Request:
 
-3. **Build and run the project using Docker Compose:**
+```json
+{
+  "youtubeLink": "https://www.youtube.com/watch?v=VIDEO_ID"
+}
+```
 
-   ```bash
-   docker-compose up --build
-   ```
+Response:
 
-4. **Visit the app in your browser:**
+```json
+{
+  "video_details": {
+    "video_title": "Video title",
+    "channel_name": "Channel name",
+    "view_count": "1000",
+    "like_count": "100",
+    "thumbnail_url": "https://..."
+  },
+  "analyzed_comments": [
+    {
+      "comment": "Great video",
+      "num_of_likes": 12,
+      "timestamp": "2026-01-01T00:00:00Z",
+      "sentiment": "positive",
+      "rating": 0.94
+    }
+  ]
+}
+```
 
-   ```bash
-   http://localhost:3000
-   ```
+## Resume Summary
 
-## 🧪 Usage
-- Enter a valid **YouTube video URL** in the input field.
-- Click the **Analyze** button. 
-- Wait for the system to fetch comments and generate sentiment insights.
-- View the **sentiment distribution, overall score, and suggestions.**
+Built a full-stack YouTube sentiment analytics platform using React, Flask, and local TensorFlow models. Integrated YouTube Data API ingestion, custom Keras attention-layer inference, sarcasm-aware sentiment correction, and an engagement-weighted scoring dashboard for creator feedback analysis.

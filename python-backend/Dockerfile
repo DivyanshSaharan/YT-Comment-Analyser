@@ -1,24 +1,25 @@
-# Use the official Python image as the base image
 FROM python:3.10-slim
 
-# Set the working directory
 WORKDIR /app
 
-# Install OpenJDK 17 and other required packages
-RUN apt-get update && apt-get install -y \
-    openjdk-17-jdk \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    default-jdk \
     build-essential \
     libssl-dev \
     libffi-dev \
     python3-dev \
     wget \
     libhdf5-dev \
-    procps \
- && rm -rf /var/lib/apt/lists/*
+    procps && \
+    rm -rf /var/lib/apt/lists/*
 
-# Set JAVA_HOME for JDK 17
+# Automatically get JAVA_HOME from update-java-alternatives
+RUN echo "JAVA_HOME=$(dirname $(dirname $(readlink -f $(which javac))))" >> /etc/environment
+
+# Or set it manually if needed (you can verify inside container)
 ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-ENV PATH=$JAVA_HOME/bin:$PATH
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+
 
 # Upgrade pip
 RUN pip install --upgrade pip setuptools
