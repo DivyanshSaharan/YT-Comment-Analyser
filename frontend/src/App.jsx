@@ -1,10 +1,13 @@
 import { Box } from "@mui/material";
+import { useState } from "react";
 import Analyzer from "./Analyzer";
 import Banner from "./Banner";
 import Footer from "./Footer";
 import Navbar from "./Navbar";
 
 function App() {
+  const [latestScore, setLatestScore] = useState(null);
+
   return (
     <Box
       sx={{
@@ -15,8 +18,8 @@ function App() {
       }}
     >
       <Navbar/>
-      <Banner/>
-      <Analyzer/>
+      <Banner score={latestScore}/>
+      <Analyzer onScoreChange={setLatestScore}/>
       <Footer/>
     </Box>
   );

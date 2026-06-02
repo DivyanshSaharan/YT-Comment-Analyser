@@ -13,7 +13,6 @@ import {
   Typography,
 } from "@mui/material";
 import PlayCircleIcon from "@mui/icons-material/PlayCircle";
-import QueryStatsIcon from "@mui/icons-material/QueryStats";
 import ThumbUpAltIcon from "@mui/icons-material/ThumbUpAlt";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import axios from "axios";
@@ -60,7 +59,7 @@ const calculateOverallScore = (comments) => {
   return Math.min(Math.max(1 + 5 * (weightedAverage + 1), 0), 10);
 };
 
-const Analyzer = () => {
+const Analyzer = ({ onScoreChange }) => {
   const [youtubeLink, setYoutubeLink] = useState("");
   const [commentCount, setCommentCount] = useState(DEFAULT_COMMENT_COUNT);
   const [result, setResult] = useState(null);
@@ -110,14 +109,17 @@ const Analyzer = () => {
     setIsLoading(true);
     setError("");
     setResult(null);
+    onScoreChange?.(null);
 
     try {
       const response = await axios.post(`${API_BASE_URL}/analyze`, {
         youtubeLink: youtubeLink.trim(),
         commentCount: safeCommentCount,
       });
+      const nextScore = calculateOverallScore(response.data.analyzed_comments || []);
       setResult(response.data);
       setCommentCount(response.data.requested_comment_count || safeCommentCount);
+      onScoreChange?.(nextScore);
     } catch (requestError) {
       setError(
         requestError.response?.data?.error ||
@@ -231,8 +233,8 @@ const Analyzer = () => {
                     <Typography sx={{ color: "#5b6b63", fontWeight: 700 }}>
                       {result.video_details.channel_name}
                     </Typography>
+                    <AnimatedScoreMeter key={result.video_details.video_title} score={overallScore} />
                     <Grid container spacing={2}>
-                      <Metric icon={<QueryStatsIcon />} label="Overall score" value={`${overallScore.toFixed(1)} / 10`} />
                       <Metric icon={<VisibilityIcon />} label="Views" value={formatNumber(result.video_details.view_count)} />
                       <Metric icon={<ThumbUpAltIcon />} label="Likes" value={formatNumber(result.video_details.like_count)} />
                       <Metric
@@ -306,6 +308,118 @@ const Metric = ({ icon, label, value }) => (
     </Box>
   </Grid>
 );
+
+const AnimatedScoreMeter = ({ score }) => {
+  const safeScore = Math.min(Math.max(Number(score) || 0, 0), 10);
+  const targetAngle = safeScore * 18;
+
+  return (
+    <Box
+      sx={{
+        p: 2,
+        borderRadius: 2,
+        backgroundColor: "#f4f8f6",
+        overflow: "hidden",
+      }}
+    >
+      <Box
+        sx={{
+          display: "grid",
+          gridTemplateColumns: { xs: "1fr", sm: "220px 1fr" },
+          gap: 2.5,
+          alignItems: "center",
+        }}
+      >
+        <Box sx={{ position: "relative", maxWidth: 240, mx: "auto", width: "100%" }}>
+          <Box
+            sx={{
+              position: "relative",
+              height: 118,
+              overflow: "hidden",
+              borderTopLeftRadius: 999,
+              borderTopRightRadius: 999,
+              background:
+                "conic-gradient(from 270deg at 50% 100%, #d0443e 0deg, #d49b16 76deg, #0f8f63 180deg, transparent 180deg)",
+            }}
+          >
+            <Box
+              sx={{
+                position: "absolute",
+                inset: "20px 20px 0",
+                borderTopLeftRadius: 999,
+                borderTopRightRadius: 999,
+                backgroundColor: "#f4f8f6",
+              }}
+            />
+            <Box
+              sx={{
+                "@keyframes scoreNeedleSettle": {
+                  "0%": { transform: "translateX(-100%) rotate(0deg)" },
+                  "30%": { transform: "translateX(-100%) rotate(176deg)" },
+                  "48%": { transform: "translateX(-100%) rotate(34deg)" },
+                  "66%": { transform: "translateX(-100%) rotate(132deg)" },
+                  "82%": { transform: `translateX(-100%) rotate(${targetAngle - 8}deg)` },
+                  "100%": { transform: `translateX(-100%) rotate(${targetAngle}deg)` },
+                },
+                position: "absolute",
+                left: "50%",
+                bottom: 0,
+                width: "42%",
+                height: 4,
+                transformOrigin: "100% 50%",
+                borderRadius: 999,
+                backgroundColor: "#17201c",
+                animation: "scoreNeedleSettle 2.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards",
+              }}
+            />
+            <Box
+              sx={{
+                position: "absolute",
+                left: "50%",
+                bottom: -9,
+                width: 24,
+                height: 24,
+                transform: "translateX(-50%)",
+                borderRadius: "50%",
+                backgroundColor: "#17201c",
+                border: "5px solid #f4f8f6",
+              }}
+            />
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              mt: 0.75,
+              color: "#66766f",
+              fontSize: 12,
+              fontWeight: 800,
+            }}
+          >
+            <span>0</span>
+            <span>5</span>
+            <span>10</span>
+          </Box>
+        </Box>
+
+        <Box>
+          <Typography variant="body2" sx={{ color: "#66766f", fontWeight: 800 }}>
+            Overall sentiment score
+          </Typography>
+          <Typography variant="h3" sx={{ fontWeight: 950, letterSpacing: 0, lineHeight: 1 }}>
+            {safeScore.toFixed(1)}
+            <Typography component="span" sx={{ color: "#66766f", fontWeight: 900, ml: 0.5 }}>
+              / 10
+            </Typography>
+          </Typography>
+          <Typography variant="body2" sx={{ color: "#52635b", mt: 0.75 }}>
+            Weighted by comment sentiment, recency, and engagement.
+          </Typography>
+        </Box>
+      </Box>
+    </Box>
+  );
+};
 
 const SentimentMeter = ({ groups, total }) => {
   const segments = Object.entries(groups).map(([sentiment, comments]) => {
