@@ -112,6 +112,3 @@ Response:
 }
 ```
 
-## Resume Summary
-
-Built a full-stack YouTube sentiment analytics platform using React, Flask, and local TensorFlow models. Integrated YouTube Data API ingestion, custom Keras attention-layer inference, sarcasm-aware sentiment correction, and an engagement-weighted scoring dashboard for creator feedback analysis.
