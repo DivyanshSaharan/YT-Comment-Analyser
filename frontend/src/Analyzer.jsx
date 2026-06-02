@@ -19,7 +19,7 @@ import axios from "axios";
 import Comment from "./Comment";
 import CustomPieChart from "./PieChart";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:5000";
+const API_BASE_URL = "https://yt-comment-analyser-1.onrender.com";
 
 const sentimentConfig = {
   positive: { label: "Positive", color: "#0f8f63", background: "#e2f5ed" },
