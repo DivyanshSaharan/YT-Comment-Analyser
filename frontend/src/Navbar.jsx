@@ -5,7 +5,7 @@ import Typography from '@mui/material/Typography';
 
 const Navbar = () => {
   return (
-    <Box sx={{ height: 72 }}>
+    <Box sx={{ height: 60 }}>
       <AppBar
         component="nav"
         elevation={0}
@@ -16,7 +16,7 @@ const Navbar = () => {
           color: '#17201c',
         }}
       >
-        <Toolbar sx={{ minHeight: 72, px: { xs: 2, md: 5 } }}>
+        <Toolbar sx={{ minHeight: 60, px: { xs: 2, md: 5 } }}>
           <Typography
             variant="h5"
             component="div"

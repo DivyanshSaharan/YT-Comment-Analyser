@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   Alert,
   Box,
@@ -59,12 +59,13 @@ const calculateOverallScore = (comments) => {
   return Math.min(Math.max(1 + 5 * (weightedAverage + 1), 0), 10);
 };
 
-const Analyzer = ({ onScoreChange }) => {
+const Analyzer = ({ onAnalysisStatusChange, onScoreChange }) => {
   const [youtubeLink, setYoutubeLink] = useState("");
   const [commentCount, setCommentCount] = useState(DEFAULT_COMMENT_COUNT);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const resultRef = useRef(null);
 
   const groupedComments = useMemo(() => {
     if (!result?.analyzed_comments) return emptyGroups;
@@ -109,6 +110,7 @@ const Analyzer = ({ onScoreChange }) => {
     setIsLoading(true);
     setError("");
     setResult(null);
+    onAnalysisStatusChange?.("analyzing");
     onScoreChange?.(null);
 
     try {
@@ -120,7 +122,12 @@ const Analyzer = ({ onScoreChange }) => {
       setResult(response.data);
       setCommentCount(response.data.requested_comment_count || safeCommentCount);
       onScoreChange?.(nextScore);
+      onAnalysisStatusChange?.("analyzed");
+      window.setTimeout(() => {
+        resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 2900);
     } catch (requestError) {
+      onAnalysisStatusChange?.("idle");
       setError(
         requestError.response?.data?.error ||
           "Analysis failed. Check the backend server and YouTube API key.",
@@ -131,12 +138,12 @@ const Analyzer = ({ onScoreChange }) => {
   };
 
   return (
-    <Box component="main" id="analyzer" sx={{ pb: { xs: 6, md: 10 } }}>
+    <Box component="main" id="analyzer" sx={{ pb: { xs: 4, md: 6 } }}>
       <Container maxWidth="lg">
         <Paper
           elevation={0}
           sx={{
-            p: { xs: 2.5, md: 4 },
+            p: { xs: 2, md: 2.5 },
             border: "1px solid rgba(23, 32, 28, 0.10)",
             borderRadius: 2,
             backgroundColor: "rgba(255, 255, 255, 0.92)",
@@ -208,9 +215,11 @@ const Analyzer = ({ onScoreChange }) => {
         {result && (
           <Stack spacing={3.5} sx={{ mt: 4 }}>
             <Paper
+              ref={resultRef}
               elevation={0}
               sx={{
                 overflow: "hidden",
+                scrollMarginTop: { xs: 78, md: 90 },
                 border: "1px solid rgba(23, 32, 28, 0.10)",
                 borderRadius: 2,
                 backgroundColor: "#fff",

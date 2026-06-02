@@ -7,6 +7,7 @@ import Navbar from "./Navbar";
 
 function App() {
   const [latestScore, setLatestScore] = useState(null);
+  const [analysisStatus, setAnalysisStatus] = useState("idle");
 
   return (
     <Box
@@ -18,8 +19,11 @@ function App() {
       }}
     >
       <Navbar/>
-      <Banner score={latestScore}/>
-      <Analyzer onScoreChange={setLatestScore}/>
+      <Banner score={latestScore} status={analysisStatus}/>
+      <Analyzer
+        onAnalysisStatusChange={setAnalysisStatus}
+        onScoreChange={setLatestScore}
+      />
       <Footer/>
     </Box>
   );

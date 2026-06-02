@@ -1,19 +1,19 @@
 import { Box, Button, Chip, Container, Stack, Typography } from "@mui/material";
 import InsightsIcon from "@mui/icons-material/Insights";
 
-const Banner = ({ score }) => {
+const Banner = ({ score, status }) => {
   return (
-    <Box component="section" sx={{ py: { xs: 5, md: 8 } }}>
+    <Box component="section" sx={{ py: { xs: 2.5, md: 3 } }}>
       <Container maxWidth="lg">
         <Box
           sx={{
             display: "grid",
             gridTemplateColumns: { xs: "1fr", md: "1.05fr 0.95fr" },
-            gap: { xs: 4, md: 7 },
+            gap: { xs: 3, md: 5 },
             alignItems: "center",
           }}
         >
-          <Stack spacing={3} alignItems="flex-start">
+          <Stack spacing={2} alignItems="flex-start">
             <Chip
               icon={<InsightsIcon />}
               label="Local TensorFlow sentiment + sarcasm models"
@@ -27,17 +27,17 @@ const Banner = ({ score }) => {
               variant="h2"
               sx={{
                 maxWidth: 680,
-                fontSize: { xs: "2.6rem", md: "4.25rem" },
+                fontSize: { xs: "2.15rem", md: "3.35rem" },
                 fontWeight: 900,
                 letterSpacing: 0,
-                lineHeight: 0.95,
+                lineHeight: 1,
               }}
             >
               YouTube comment sentiment, ranked by impact.
             </Typography>
             <Typography
               variant="h6"
-              sx={{ maxWidth: 620, color: "#52635b", lineHeight: 1.7 }}
+              sx={{ maxWidth: 620, color: "#52635b", lineHeight: 1.45 }}
             >
               VibeCheck pulls real video feedback, scores each comment with your
               trained models, and turns noisy engagement into a creator-ready
@@ -60,17 +60,23 @@ const Banner = ({ score }) => {
               Analyze a video
             </Button>
           </Stack>
-          <HeroMeter score={score} />
+          <HeroMeter score={score} status={status} />
         </Box>
       </Container>
     </Box>
   );
 };
 
-const HeroMeter = ({ score }) => {
-  const hasScore = Number.isFinite(score);
+const HeroMeter = ({ score, status }) => {
+  const hasScore = status === "analyzed" && Number.isFinite(score);
+  const isAnalyzing = status === "analyzing";
   const safeScore = hasScore ? Math.min(Math.max(Number(score), 0), 10) : 0;
   const targetAngle = safeScore * 18;
+  const chipConfig = {
+    analyzed: { label: "Analyzed", background: "#e0f2ed", color: "#0c5a4a" },
+    analyzing: { label: "Analyzing", background: "#fff3cf", color: "#7a5a12" },
+    idle: { label: "Awaiting URL", background: "#eef4f1", color: "#52635b" },
+  }[status] || { label: "Awaiting URL", background: "#eef4f1", color: "#52635b" };
 
   return (
     <Box
@@ -83,7 +89,7 @@ const HeroMeter = ({ score }) => {
         boxShadow: "0 28px 70px rgba(17, 106, 88, 0.18)",
       }}
     >
-      <Stack spacing={3}>
+      <Stack spacing={2}>
         <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 900, letterSpacing: 0 }}>
@@ -94,24 +100,24 @@ const HeroMeter = ({ score }) => {
             </Typography>
           </Box>
           <Chip
-            label={hasScore ? "Analyzed" : "Awaiting URL"}
+            label={chipConfig.label}
             size="small"
             sx={{
-              backgroundColor: hasScore ? "#e0f2ed" : "#eef4f1",
-              color: hasScore ? "#0c5a4a" : "#52635b",
+              backgroundColor: chipConfig.background,
+              color: chipConfig.color,
               fontWeight: 800,
             }}
           />
         </Box>
 
         <Box
-          key={hasScore ? safeScore.toFixed(2) : "empty"}
+          key={hasScore ? safeScore.toFixed(2) : status}
           sx={{ position: "relative", width: "100%", maxWidth: 420, mx: "auto", pt: 2 }}
         >
           <Box
             sx={{
               position: "relative",
-              height: { xs: 138, sm: 170 },
+              height: { xs: 122, sm: 150 },
               overflow: "hidden",
               borderTopLeftRadius: 999,
               borderTopRightRadius: 999,
@@ -135,8 +141,13 @@ const HeroMeter = ({ score }) => {
                   "30%": { transform: "translateX(-100%) rotate(176deg)" },
                   "48%": { transform: "translateX(-100%) rotate(34deg)" },
                   "66%": { transform: "translateX(-100%) rotate(132deg)" },
-                  "82%": { transform: `translateX(-100%) rotate(${targetAngle - 8}deg)` },
+                  "82%": { transform: `translateX(-100%) rotate(${Math.max(targetAngle - 8, 0)}deg)` },
                   "100%": { transform: `translateX(-100%) rotate(${targetAngle}deg)` },
+                },
+                "@keyframes heroNeedleScan": {
+                  "0%": { transform: "translateX(-100%) rotate(0deg)" },
+                  "50%": { transform: "translateX(-100%) rotate(180deg)" },
+                  "100%": { transform: "translateX(-100%) rotate(0deg)" },
                 },
                 position: "absolute",
                 left: "50%",
@@ -149,7 +160,9 @@ const HeroMeter = ({ score }) => {
                 backgroundColor: "#17201c",
                 animation: hasScore
                   ? "heroNeedleSettle 2.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards"
-                  : "none",
+                  : isAnalyzing
+                    ? "heroNeedleScan 1.25s ease-in-out infinite"
+                    : "none",
               }}
             />
             <Box
@@ -171,7 +184,7 @@ const HeroMeter = ({ score }) => {
               {safeScore.toFixed(1)}
             </Typography>
             <Typography variant="body2" sx={{ color: "#66766f", fontWeight: 800 }}>
-              {hasScore ? "final score" : "ready to calculate"}
+              {hasScore ? "final score" : isAnalyzing ? "calculating" : "ready to calculate"}
             </Typography>
           </Box>
         </Box>
