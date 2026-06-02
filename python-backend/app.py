@@ -12,6 +12,7 @@ from comment_analyzer import analyze_comments
 
 load_dotenv()
 DEVELOPER_KEY = os.getenv("DEVELOPER_KEY")
+MAX_COMMENTS_PER_REQUEST = 1000
 
 app = Flask(__name__)
 CORS(app)
@@ -47,6 +48,7 @@ def get_video_details(video_id):
                 "channel_name": video["snippet"]["channelTitle"],
                 "view_count": video["statistics"].get("viewCount"),
                 "like_count": video["statistics"].get("likeCount"),
+                "comment_count": video["statistics"].get("commentCount"),
                 "thumbnail_url": video["snippet"]["thumbnails"]["high"]["url"],
             }
 
@@ -107,7 +109,21 @@ def analyze():
         if not video_details:
             return jsonify({"error": "Error: Could not retrieve video details."}), 500
 
-        comments = get_comments(video_id)
+        available_comments = int(video_details.get("comment_count") or 0)
+
+        try:
+            requested_comments = int(data.get("commentCount") or 100)
+        except (TypeError, ValueError):
+            return jsonify({"error": "Comment count must be a valid number."}), 400
+
+        if requested_comments < 1:
+            return jsonify({"error": "Comment count must be at least 1."}), 400
+
+        if available_comments:
+            requested_comments = min(requested_comments, available_comments)
+
+        requested_comments = min(requested_comments, MAX_COMMENTS_PER_REQUEST)
+        comments = get_comments(video_id, max_results=requested_comments)
 
         if comments:
             analyzed_comments = analyze_comments(comments)
@@ -115,6 +131,8 @@ def analyze():
             return jsonify({
                 "video_details": video_details,
                 "analyzed_comments": analyzed_comments,
+                "requested_comment_count": requested_comments,
+                "available_comment_count": available_comments or len(comments),
             })
 
         return jsonify({"error": "Error: Could not retrieve comments from video."}), 500

@@ -28,6 +28,8 @@ const sentimentConfig = {
   negative: { label: "Negative", color: "#b42318", background: "#fde7e5" },
 };
 
+const DEFAULT_COMMENT_COUNT = 100;
+const MAX_COMMENT_COUNT = 1000;
 const emptyGroups = { positive: [], neutral: [], negative: [] };
 
 const formatNumber = (value) =>
@@ -60,6 +62,7 @@ const calculateOverallScore = (comments) => {
 
 const Analyzer = () => {
   const [youtubeLink, setYoutubeLink] = useState("");
+  const [commentCount, setCommentCount] = useState(DEFAULT_COMMENT_COUNT);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -83,6 +86,18 @@ const Analyzer = () => {
   );
 
   const totalComments = result?.analyzed_comments?.length || 0;
+  const availableCommentCount = Number(
+    result?.available_comment_count || result?.video_details?.comment_count || 0,
+  );
+  const maxCommentCount = availableCommentCount
+    ? Math.min(availableCommentCount, MAX_COMMENT_COUNT)
+    : MAX_COMMENT_COUNT;
+
+  const handleCommentCountChange = (event) => {
+    const nextValue = Number(event.target.value);
+    if (!Number.isFinite(nextValue)) return;
+    setCommentCount(Math.min(Math.max(Math.floor(nextValue), 1), maxCommentCount));
+  };
 
   const handleAnalyzeClick = async () => {
     if (!youtubeLink.trim()) {
@@ -90,6 +105,8 @@ const Analyzer = () => {
       return;
     }
 
+    const safeCommentCount = Math.min(Math.max(Number(commentCount) || 1, 1), maxCommentCount);
+    setCommentCount(safeCommentCount);
     setIsLoading(true);
     setError("");
     setResult(null);
@@ -97,8 +114,10 @@ const Analyzer = () => {
     try {
       const response = await axios.post(`${API_BASE_URL}/analyze`, {
         youtubeLink: youtubeLink.trim(),
+        commentCount: safeCommentCount,
       });
       setResult(response.data);
+      setCommentCount(response.data.requested_comment_count || safeCommentCount);
     } catch (requestError) {
       setError(
         requestError.response?.data?.error ||
@@ -141,6 +160,19 @@ const Analyzer = () => {
                   fullWidth
                   value={youtubeLink}
                   onChange={(event) => setYoutubeLink(event.target.value)}
+                />
+                <TextField
+                  label="Comments"
+                  type="number"
+                  value={commentCount}
+                  onChange={handleCommentCountChange}
+                  inputProps={{ min: 1, max: maxCommentCount, step: 1 }}
+                  helperText={
+                    availableCommentCount
+                      ? `Max ${formatNumber(maxCommentCount)}`
+                      : `1-${formatNumber(MAX_COMMENT_COUNT)}`
+                  }
+                  sx={{ width: { xs: "100%", sm: 132 }, flexShrink: 0 }}
                 />
                 <Button
                   variant="contained"
@@ -203,7 +235,11 @@ const Analyzer = () => {
                       <Metric icon={<QueryStatsIcon />} label="Overall score" value={`${overallScore.toFixed(1)} / 10`} />
                       <Metric icon={<VisibilityIcon />} label="Views" value={formatNumber(result.video_details.view_count)} />
                       <Metric icon={<ThumbUpAltIcon />} label="Likes" value={formatNumber(result.video_details.like_count)} />
-                      <Metric icon={<PlayCircleIcon />} label="Comments analyzed" value={formatNumber(totalComments)} />
+                      <Metric
+                        icon={<PlayCircleIcon />}
+                        label="Comments analyzed"
+                        value={`${formatNumber(totalComments)} / ${formatNumber(availableCommentCount || totalComments)}`}
+                      />
                     </Grid>
                   </Stack>
                 </Grid>
@@ -215,41 +251,7 @@ const Analyzer = () => {
                 <CustomPieChart data={groupedComments} />
               </Grid>
               <Grid item xs={12} md={7}>
-                <Paper
-                  elevation={0}
-                  sx={{
-                    p: 3,
-                    height: "100%",
-                    border: "1px solid rgba(23, 32, 28, 0.10)",
-                    borderRadius: 2,
-                    backgroundColor: "#fff",
-                  }}
-                >
-                  <Typography variant="h5" sx={{ mb: 2, fontWeight: 850, letterSpacing: 0 }}>
-                    Sentiment breakdown
-                  </Typography>
-                  <Grid container spacing={2}>
-                    {Object.entries(groupedComments).map(([sentiment, comments]) => (
-                      <Grid item xs={12} sm={4} key={sentiment}>
-                        <Box
-                          sx={{
-                            p: 2,
-                            borderRadius: 2,
-                            backgroundColor: sentimentConfig[sentiment].background,
-                            color: sentimentConfig[sentiment].color,
-                          }}
-                        >
-                          <Typography variant="h4" sx={{ fontWeight: 900 }}>
-                            {comments.length}
-                          </Typography>
-                          <Typography sx={{ fontWeight: 800 }}>
-                            {sentimentConfig[sentiment].label}
-                          </Typography>
-                        </Box>
-                      </Grid>
-                    ))}
-                  </Grid>
-                </Paper>
+                <SentimentMeter groups={groupedComments} total={totalComments} />
               </Grid>
             </Grid>
 
@@ -304,5 +306,96 @@ const Metric = ({ icon, label, value }) => (
     </Box>
   </Grid>
 );
+
+const SentimentMeter = ({ groups, total }) => {
+  const segments = Object.entries(groups).map(([sentiment, comments]) => {
+    const count = comments.length;
+    return {
+      sentiment,
+      count,
+      percent: total ? Math.round((count / total) * 100) : 0,
+      ...sentimentConfig[sentiment],
+    };
+  });
+
+  return (
+    <Paper
+      elevation={0}
+      sx={{
+        p: { xs: 2, md: 2.5 },
+        height: "100%",
+        border: "1px solid rgba(23, 32, 28, 0.10)",
+        borderRadius: 2,
+        backgroundColor: "#fff",
+      }}
+    >
+      <Stack spacing={2}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 850, letterSpacing: 0 }}>
+              Sentiment breakdown
+            </Typography>
+            <Typography variant="body2" sx={{ color: "#66766f", fontWeight: 700 }}>
+              {formatNumber(total)} comments analyzed
+            </Typography>
+          </Box>
+          <Typography variant="h5" sx={{ fontWeight: 900 }}>
+            100%
+          </Typography>
+        </Box>
+
+        <Box
+          sx={{
+            display: "flex",
+            width: "100%",
+            height: 18,
+            overflow: "hidden",
+            borderRadius: 999,
+            backgroundColor: "#eef4f1",
+          }}
+        >
+          {segments.map((segment) => (
+            <Box
+              key={segment.sentiment}
+              sx={{
+                width: `${segment.percent}%`,
+                minWidth: segment.count ? 10 : 0,
+                backgroundColor: segment.color,
+              }}
+            />
+          ))}
+        </Box>
+
+        <Stack spacing={1}>
+          {segments.map((segment) => (
+            <Box
+              key={segment.sentiment}
+              sx={{
+                display: "grid",
+                gridTemplateColumns: "auto 1fr auto",
+                gap: 1.5,
+                alignItems: "center",
+                py: 0.75,
+              }}
+            >
+              <Box
+                sx={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: "50%",
+                  backgroundColor: segment.color,
+                }}
+              />
+              <Typography sx={{ fontWeight: 800 }}>{segment.label}</Typography>
+              <Typography sx={{ color: "#52635b", fontWeight: 800 }}>
+                {segment.count} ({segment.percent}%)
+              </Typography>
+            </Box>
+          ))}
+        </Stack>
+      </Stack>
+    </Paper>
+  );
+};
 
 export default Analyzer;
