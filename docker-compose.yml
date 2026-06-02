@@ -6,6 +6,8 @@ services:
       context: ./python-backend
     ports:
       - "5000:5000"
+    env_file:
+      - ./python-backend/.env
     environment:
       - JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
     depends_on:

@@ -2,14 +2,15 @@ import { Box, Button, Chip, Container, Stack, Typography } from "@mui/material";
 import InsightsIcon from "@mui/icons-material/Insights";
 
 const Banner = ({ score, status }) => {
+  const isCompact = status !== "analyzed";
   return (
-    <Box component="section" sx={{ py: { xs: 2.5, md: 3 } }}>
+    <Box component="section" sx={{ py: isCompact ? { xs: 1.5, md: 2.5 } : { xs: 2.5, md: 3 } }}>
       <Container maxWidth="lg">
         <Box
           sx={{
             display: "grid",
             gridTemplateColumns: { xs: "1fr", md: "1.05fr 0.95fr" },
-            gap: { xs: 3, md: 5 },
+            gap: isCompact ? { xs: 2, md: 3 } : { xs: 3, md: 5 },
             alignItems: "center",
           }}
         >
@@ -27,7 +28,7 @@ const Banner = ({ score, status }) => {
               variant="h2"
               sx={{
                 maxWidth: 680,
-                fontSize: { xs: "2.15rem", md: "3.35rem" },
+                fontSize: isCompact ? { xs: "1.75rem", md: "2.85rem" } : { xs: "2.15rem", md: "3.35rem" },
                 fontWeight: 900,
                 letterSpacing: 0,
                 lineHeight: 1,
@@ -37,28 +38,35 @@ const Banner = ({ score, status }) => {
             </Typography>
             <Typography
               variant="h6"
-              sx={{ maxWidth: 620, color: "#52635b", lineHeight: 1.45 }}
+              sx={{
+                maxWidth: 620,
+                color: "#52635b",
+                lineHeight: 1.45,
+                fontSize: isCompact ? { xs: "1rem", md: "1.15rem" } : undefined
+              }}
             >
               VibeCheck pulls real video feedback, scores each comment with your
               trained models, and turns noisy engagement into a creator-ready
               sentiment dashboard.
             </Typography>
-            <Button
-              href="#analyzer"
-              variant="contained"
-              size="large"
-              sx={{
-                backgroundColor: "#116a58",
-                borderRadius: 2,
-                px: 3,
-                py: 1.3,
-                fontWeight: 800,
-                textTransform: "none",
-                "&:hover": { backgroundColor: "#0b5748" },
-              }}
-            >
-              Analyze a video
-            </Button>
+            {status === "analyzed" && (
+              <Button
+                href="#analyzer"
+                variant="contained"
+                size="large"
+                sx={{
+                  backgroundColor: "#116a58",
+                  borderRadius: 2,
+                  px: 3,
+                  py: 1.3,
+                  fontWeight: 800,
+                  textTransform: "none",
+                  "&:hover": { backgroundColor: "#0b5748" },
+                }}
+              >
+                Analyze a video
+              </Button>
+            )}
           </Stack>
           <HeroMeter score={score} status={status} />
         </Box>

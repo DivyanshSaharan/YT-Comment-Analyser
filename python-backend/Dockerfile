@@ -35,8 +35,8 @@ COPY . .
 # Copy the start script into the container (already included by previous line, so this is optional)
 # COPY start.sh .
 
-# Make the start script executable
-RUN chmod +x start.sh
+# Make the start script executable and fix potential Windows CRLF line endings
+RUN sed -i 's/\r$//' start.sh && chmod +x start.sh
 # Expose the port that your Flask app listens on
 EXPOSE 5000
 

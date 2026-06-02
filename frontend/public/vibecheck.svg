@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <!-- Dark green-teal gradient for background -->
+    <linearGradient id="bubbleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#116a58" />
+      <stop offset="100%" stop-color="#0b5748" />
+    </linearGradient>
+    <!-- Bright green-teal gradient for checkmark / light highlight -->
+    <linearGradient id="checkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f8f63" />
+      <stop offset="100%" stop-color="#14b8a6" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#116a58" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <!-- Comment Bubble Base -->
+  <path 
+    d="M 128 32 C 68.35 32 20 73.19 20 124 C 20 148.65 29.35 170.97 45.47 187.97 C 41.72 207.28 30.63 218.84 21.03 223.38 C 17.53 225.03 18.25 230.12 22.09 230.12 C 45.75 230.12 70.81 216.59 86.88 206.84 C 99.81 212.78 113.66 216 128 216 C 187.65 216 236 174.81 236 124 C 236 73.19 187.65 32 128 32 Z" 
+    fill="url(#bubbleGrad)"
+    filter="url(#shadow)"
+  />
+
+  <!-- Nested checkmark & dynamic waves representing checking vibes/sentiment -->
+  <path
+    d="M 80 128 L 112 160 L 176 96"
+    fill="none"
+    stroke="url(#checkGrad)"
+    stroke-width="24"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

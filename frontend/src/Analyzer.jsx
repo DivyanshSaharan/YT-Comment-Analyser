@@ -59,13 +59,20 @@ const calculateOverallScore = (comments) => {
   return Math.min(Math.max(1 + 5 * (weightedAverage + 1), 0), 10);
 };
 
-const Analyzer = ({ onAnalysisStatusChange, onScoreChange }) => {
+const Analyzer = ({ status, onAnalysisStatusChange, onScoreChange }) => {
   const [youtubeLink, setYoutubeLink] = useState("");
   const [commentCount, setCommentCount] = useState(DEFAULT_COMMENT_COUNT);
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const resultRef = useRef(null);
+  const [visibleCounts, setVisibleCounts] = useState({
+    positive: 12,
+    neutral: 12,
+    negative: 12,
+  });
+
+  const isCompact = status !== "analyzed";
 
   const groupedComments = useMemo(() => {
     if (!result?.analyzed_comments) return emptyGroups;
@@ -93,10 +100,38 @@ const Analyzer = ({ onAnalysisStatusChange, onScoreChange }) => {
     ? Math.min(availableCommentCount, MAX_COMMENT_COUNT)
     : MAX_COMMENT_COUNT;
 
+  const handleYoutubeLinkChange = (event) => {
+    const nextUrl = event.target.value;
+    setYoutubeLink(nextUrl);
+    setResult(null);
+    setError("");
+    setVisibleCounts({ positive: 12, neutral: 12, negative: 12 });
+    onAnalysisStatusChange?.("idle");
+    onScoreChange?.(null);
+  };
+
   const handleCommentCountChange = (event) => {
-    const nextValue = Number(event.target.value);
+    const value = event.target.value;
+    if (value === "") {
+      setCommentCount("");
+      return;
+    }
+    const nextValue = Number(value);
     if (!Number.isFinite(nextValue)) return;
-    setCommentCount(Math.min(Math.max(Math.floor(nextValue), 1), maxCommentCount));
+    setCommentCount(value);
+  };
+
+  const handleCommentCountBlur = () => {
+    if (commentCount === "") {
+      setCommentCount(DEFAULT_COMMENT_COUNT);
+      return;
+    }
+    const nextValue = Math.floor(Number(commentCount));
+    if (!Number.isInteger(nextValue) || nextValue < 1) {
+      setCommentCount(DEFAULT_COMMENT_COUNT);
+    } else {
+      setCommentCount(Math.min(nextValue, maxCommentCount));
+    }
   };
 
   const handleAnalyzeClick = async () => {
@@ -105,11 +140,16 @@ const Analyzer = ({ onAnalysisStatusChange, onScoreChange }) => {
       return;
     }
 
-    const safeCommentCount = Math.min(Math.max(Number(commentCount) || 1, 1), maxCommentCount);
+    let finalCommentCount = Number(commentCount);
+    if (!Number.isFinite(finalCommentCount) || finalCommentCount < 1) {
+      finalCommentCount = DEFAULT_COMMENT_COUNT;
+    }
+    const safeCommentCount = Math.min(finalCommentCount, maxCommentCount);
     setCommentCount(safeCommentCount);
     setIsLoading(true);
     setError("");
     setResult(null);
+    setVisibleCounts({ positive: 12, neutral: 12, negative: 12 });
     onAnalysisStatusChange?.("analyzing");
     onScoreChange?.(null);
 
@@ -138,43 +178,46 @@ const Analyzer = ({ onAnalysisStatusChange, onScoreChange }) => {
   };
 
   return (
-    <Box component="main" id="analyzer" sx={{ pb: { xs: 4, md: 6 } }}>
+    <Box component="main" id="analyzer" sx={{ pb: isCompact ? 0 : { xs: 4, md: 6 } }}>
       <Container maxWidth="lg">
         <Paper
           elevation={0}
           sx={{
-            p: { xs: 2, md: 2.5 },
+            p: isCompact ? { xs: 1.5, md: 2 } : { xs: 2, md: 2.5 },
             border: "1px solid rgba(23, 32, 28, 0.10)",
             borderRadius: 2,
             backgroundColor: "rgba(255, 255, 255, 0.92)",
           }}
         >
-          <Grid container spacing={3} alignItems="center">
-            <Grid item xs={12} md={7}>
-              <Stack spacing={1}>
-                <Typography variant="h4" sx={{ fontWeight: 850, letterSpacing: 0 }}>
-                  Run comment analysis
-                </Typography>
-                <Typography sx={{ color: "#5b6b63", maxWidth: 680 }}>
-                  Paste a public YouTube video URL to fetch metadata, classify
-                  comments, and compute a recency-and-engagement weighted score.
-                </Typography>
-              </Stack>
-            </Grid>
-            <Grid item xs={12} md={5}>
+          <Grid container spacing={isCompact ? 0 : 3} alignItems="center">
+            {!isCompact && (
+              <Grid item xs={12} md={7}>
+                <Stack spacing={1}>
+                  <Typography variant="h4" sx={{ fontWeight: 850, letterSpacing: 0 }}>
+                    Run comment analysis
+                  </Typography>
+                  <Typography sx={{ color: "#5b6b63", maxWidth: 680 }}>
+                    Paste a public YouTube video URL to fetch metadata, classify
+                    comments, and compute a recency-and-engagement weighted score.
+                  </Typography>
+                </Stack>
+              </Grid>
+            )}
+            <Grid item xs={12} md={isCompact ? 12 : 5}>
               <Stack direction={{ xs: "column", sm: "row" }} spacing={1.5}>
                 <TextField
                   label="YouTube video URL"
                   variant="outlined"
                   fullWidth
                   value={youtubeLink}
-                  onChange={(event) => setYoutubeLink(event.target.value)}
+                  onChange={handleYoutubeLinkChange}
                 />
                 <TextField
                   label="Comments"
                   type="number"
                   value={commentCount}
                   onChange={handleCommentCountChange}
+                  onBlur={handleCommentCountBlur}
                   inputProps={{ min: 1, max: maxCommentCount, step: 1 }}
                   helperText={
                     availableCommentCount
@@ -206,7 +249,7 @@ const Analyzer = ({ onAnalysisStatusChange, onScoreChange }) => {
           </Grid>
 
           {error && (
-            <Alert severity="error" sx={{ mt: 3 }}>
+            <Alert severity="error" sx={{ mt: isCompact ? 1.5 : 3 }}>
               {error}
             </Alert>
           )}
@@ -267,24 +310,57 @@ const Analyzer = ({ onAnalysisStatusChange, onScoreChange }) => {
             </Grid>
 
             <Grid container spacing={3}>
-              {Object.entries(groupedComments).map(([sentiment, comments]) => (
-                <Grid item xs={12} md={4} key={sentiment}>
-                  <Stack spacing={1.5}>
-                    <Chip
-                      label={`${sentimentConfig[sentiment].label} comments`}
-                      sx={{
-                        alignSelf: "flex-start",
-                        backgroundColor: sentimentConfig[sentiment].background,
-                        color: sentimentConfig[sentiment].color,
-                        fontWeight: 800,
-                      }}
-                    />
-                    {comments.slice(0, 12).map((row) => (
-                      <Comment key={`${row.timestamp}-${row.comment}`} {...row} />
-                    ))}
-                  </Stack>
-                </Grid>
-              ))}
+              {Object.entries(groupedComments).map(([sentiment, comments]) => {
+                const limit = visibleCounts[sentiment] || 12;
+                const visibleComments = comments.slice(0, limit);
+                const hasMore = comments.length > limit;
+
+                return (
+                  <Grid item xs={12} md={4} key={sentiment}>
+                    <Stack spacing={1.5}>
+                      <Chip
+                        label={`${sentimentConfig[sentiment].label} comments`}
+                        sx={{
+                          alignSelf: "flex-start",
+                          backgroundColor: sentimentConfig[sentiment].background,
+                          color: sentimentConfig[sentiment].color,
+                          fontWeight: 800,
+                        }}
+                      />
+                      {visibleComments.map((row) => (
+                        <Comment key={`${row.timestamp}-${row.comment}`} {...row} />
+                      ))}
+                      {hasMore && (
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={() =>
+                            setVisibleCounts((prev) => ({
+                              ...prev,
+                              [sentiment]: prev[sentiment] + 12,
+                            }))
+                          }
+                          sx={{
+                            mt: 1.5,
+                            alignSelf: "stretch",
+                            borderColor: sentimentConfig[sentiment].color,
+                            color: sentimentConfig[sentiment].color,
+                            fontWeight: 800,
+                            borderRadius: 2,
+                            textTransform: "none",
+                            "&:hover": {
+                              backgroundColor: sentimentConfig[sentiment].background,
+                              borderColor: sentimentConfig[sentiment].color,
+                            },
+                          }}
+                        >
+                          Show more (+12)
+                        </Button>
+                      )}
+                    </Stack>
+                  </Grid>
+                );
+              })}
             </Grid>
           </Stack>
         )}
